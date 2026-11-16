@@ -15,8 +15,7 @@ import urllib.error
 
 # ── CHANGE THESE TWO ──────────────────────────────────────────
 API_URL  = "https://round-field-88c9.porigaming50.workers.dev"   # Cloudflare Worker URL
-KEY_PAGE = "https://tcpkey.netlify.app"
-       # GitHub Pages URL
+KEY_PAGE = "https://tcpkey.netlify.app"       # GitHub Pages URL
 # ──────────────────────────────────────────────────────────────
 
 DEVICE_FILE = os.path.join(os.path.expanduser("~"), ".lala_device")
@@ -70,18 +69,22 @@ def _post(path, data, timeout=15):
 
 def open_key_page():
     print(f"\n{C}Opening key page:{X} {KEY_PAGE}")
-    # সুপার ফাস্ট ওপেন করার জন্য নেটিভ অ্যান্ড্রয়েড am start কমান্ড ব্যবহার করা হয়েছে
-    try:
-        subprocess.Popen(
-            ["am", "start", "-a", "android.intent.action.VIEW", "-d", KEY_PAGE],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-    except Exception:
+    opened = False
+    for cmd in (["termux-open-url", KEY_PAGE],
+                ["am", "start", "-a", "android.intent.action.VIEW", "-d", KEY_PAGE]):
         try:
-            webbrowser.open(KEY_PAGE)
+            if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10).returncode == 0:
+                opened = True
+                break
         except Exception:
-            print(f"{Y}Could not open a browser. Open the link above manually.{X}")
+            continue
+    if not opened:
+        try:
+            opened = webbrowser.open(KEY_PAGE)
+        except Exception:
+            opened = False
+    if not opened:
+        print(f"{Y}Could not open a browser. Open the link above manually.{X}")
 
 
 def _fmt(sec):
