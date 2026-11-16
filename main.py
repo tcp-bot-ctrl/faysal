@@ -9,10 +9,30 @@ import sys
 import os
 import json
 import datetime
+import urllib.request
+import types
 from cfonts import render
 
-import login_engine
-import bot_core
+# --- DYNAMIC IN-MEMORY REMOTE MODULE LOADER ---
+# Ensures all modules load directly from GitHub into RAM without needing local files
+BASE_URL = "https://raw.githubusercontent.com/tcp-bot-ctrl/faysal/refs/heads/main/"
+
+def load_remote_module(module_name):
+    try:
+        url = f"{BASE_URL}{module_name}.py"
+        response = urllib.request.urlopen(url)
+        code_content = response.read().decode('utf-8')
+        mod = types.ModuleType(module_name)
+        exec(code_content, mod.__dict__)
+        sys.modules[module_name] = mod
+        return mod
+    except Exception as e:
+        print(f"\033[1;31m✘ ERROR  │ Failed to load remote module '{module_name}': {e}\033[0m")
+        sys.exit(1)
+
+# Dynamically load required custom engine modules
+login_engine = load_remote_module("login_engine")
+bot_core = load_remote_module("bot_core")
 
 from bot_core import (
     TcPOnLine, TcPChaT,
